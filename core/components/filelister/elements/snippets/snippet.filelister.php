@@ -240,6 +240,7 @@ unset($directory);
 foreach ($files as $file) {
     $odd = $i % 2;
     $file['cls'] = $odd ? $altCls : $cls;
+    $file['idx'] = $i;
     if ($i == 0) $file['cls'] .= ' '.$firstCls;
     if ($i == ($totalCount-1)) $file['cls'] .= ' '.$lastCls;
     $list[] = $fileLister->getChunk($fileTpl,$file);
