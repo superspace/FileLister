@@ -124,6 +124,8 @@ if (!is_dir($curPath) && is_file($curPath)) {
 } elseif (!is_dir($curPath)) {
     /* if an invalid path, set to base */
     $curPath = $path;
+    /* and clear relPath */
+    $relPath = '';
 }
 
 /* check download access */
