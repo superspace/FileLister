@@ -175,25 +175,13 @@ class FileLister {
      */
     private function _encrypt($str) {
         $key = $this->config['salt'];
-
-        srand((double)microtime() * 1000000); /* for MCRYPT_RAND */
         $key = md5($key); /* to improve variance */
-
-        /* open module, create IV */
-        $td = mcrypt_module_open('des','','cfb','');
-        $key = substr($key,0,mcrypt_enc_get_key_size($td));
-        $iv_size = mcrypt_enc_get_iv_size($td);
-        $iv = mcrypt_create_iv($iv_size,MCRYPT_RAND);
-
-        /* initialize encryption handle */
-        if (mcrypt_generic_init($td,$key,$iv) != -1) {
-            /* Encrypt data */
-            $c_t = mcrypt_generic($td,$str);
-            mcrypt_generic_deinit($td);
-            mcrypt_module_close($td);
-            $c_t = $iv.$c_t;
-            return urlencode($c_t);
-        }
+        
+        $ciphers = openssl_get_cipher_methods();
+        if (!is_array($ciphers)) $ciphers = ['AES-128-CBC'];
+        
+        $encrypted = openssl_encrypt((string) $str, $ciphers[0], $key);
+        return urlencode($encrypted);
     }
 
     /**
@@ -204,26 +192,14 @@ class FileLister {
      * @return A decrypted string
      */
     private function _decrypt($str) {
-        $str = urldecode($str);
+        $str = urldecode((string) $str);
         $key = $this->config['salt'];
-
         $key = md5($key);
 
-        /* open module, create IV */
-        $td = mcrypt_module_open('des','','cfb','');
-        $key = substr($key,0,mcrypt_enc_get_key_size($td));
-        $iv_size = mcrypt_enc_get_iv_size($td);
-        $iv = substr($str,0,$iv_size);
-        $str = substr($str,$iv_size);
-
-        /* initialize encryption handle */
-        if (mcrypt_generic_init($td,$key,$iv) != -1) {
-            /* decrypt data */
-            $c_t = mdecrypt_generic($td,$str);
-            mcrypt_generic_deinit($td);
-            mcrypt_module_close($td);
-            return $c_t;
-        }
+        $ciphers = openssl_get_cipher_methods();
+        if (!is_array($ciphers)) $ciphers = ['AES-128-CBC'];
+        
+        return openssl_decrypt($str, $ciphers[0], $key);
     }
 
     /**
